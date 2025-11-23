@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Secure API{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Profile</h1>
+
+        <div class="bg-white shadow rounded-lg p-6">
+            <div id="profileInfo" class="space-y-4">
+                <div class="text-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p class="mt-4 text-gray-500">Loading profile...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function loadProfile() {
+        try {
+            const response = await apiRequest('/api/accounts/profile/');
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('profileInfo').innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Username</label>
+                            <p class="mt-1 text-lg text-gray-900">${escapeHtml(data.username)}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                            <p class="mt-1 text-lg text-gray-900">${escapeHtml(data.email)}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">First Name</label>
+                            <p class="mt-1 text-lg text-gray-900">${escapeHtml(data.first_name || 'Not set')}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                            <p class="mt-1 text-lg text-gray-900">${escapeHtml(data.last_name || 'Not set')}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Account Created</label>
+                            <p class="mt-1 text-lg text-gray-900">${new Date(data.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email Verified</label>
+                            <p class="mt-1">
+                                <span class="px-2 py-1 rounded text-sm ${data.is_verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                    ${data.is_verified ? 'Verified' : 'Not Verified'}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+            document.getElementById('profileInfo').innerHTML = 
+                '<div class="text-center py-12 text-red-600">Error loading profile</div>';
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    loadProfile();
+</script>
+{% endblock %}
+

@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Posts - Secure API{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Posts</h1>
+            <p class="mt-2 text-gray-600">Manage your posts</p>
+        </div>
+        <button onclick="showCreateModal()" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium">
+            Create Post
+        </button>
+    </div>
+
+    <!-- Posts List -->
+    <div id="postsContainer" class="space-y-4">
+        <div class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p class="mt-4 text-gray-500">Loading posts...</p>
+        </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="postModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4" id="modalTitle">Create Post</h3>
+                <form id="postForm">
+                    <input type="hidden" id="postId">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <input type="text" id="postTitle" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                        <textarea id="postContent" rows="5" required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="postPublished" class="rounded border-gray-300 text-primary focus:ring-primary">
+                            <span class="ml-2 text-sm text-gray-700">Publish immediately</span>
+                        </label>
+                    </div>
+                    <div id="modalError" class="hidden mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded"></div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="hideModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let posts = [];
+
+    async function loadPosts() {
+        try {
+            const response = await apiRequest('/api/posts/');
+            if (response.ok) {
+                posts = await response.json();
+                renderPosts();
+            } else {
+                document.getElementById('postsContainer').innerHTML = 
+                    '<div class="text-center py-12 text-red-600">Error loading posts</div>';
+            }
+        } catch (error) {
+            console.error('Error loading posts:', error);
+        }
+    }
+
+    function renderPosts() {
+        const container = document.getElementById('postsContainer');
+        if (posts.length === 0) {
+            container.innerHTML = '<div class="text-center py-12 text-gray-500">No posts yet. Create your first post!</div>';
+            return;
+        }
+
+        container.innerHTML = posts.map(post => `
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <h3 class="text-xl font-semibold text-gray-900">${escapeHtml(post.title)}</h3>
+                        <p class="mt-2 text-gray-600">${escapeHtml(post.content.substring(0, 200))}${post.content.length > 200 ? '...' : ''}</p>
+                        <div class="mt-4 flex items-center space-x-4 text-sm text-gray-500">
+                            <span>By ${escapeHtml(post.author.username)}</span>
+                            <span>•</span>
+                            <span>${new Date(post.created_at).toLocaleDateString()}</span>
+                            ${post.is_published ? '<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Published</span>' : '<span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Draft</span>'}
+                        </div>
+                    </div>
+                    <div class="ml-4 flex space-x-2">
+                        ${!post.is_published ? `<button onclick="publishPost(${post.id})" class="text-green-600 hover:text-green-800">Publish</button>` : ''}
+                        <button onclick="editPost(${post.id})" class="text-blue-600 hover:text-blue-800">Edit</button>
+                        <button onclick="deletePost(${post.id})" class="text-red-600 hover:text-red-800">Delete</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function showCreateModal() {
+        document.getElementById('modalTitle').textContent = 'Create Post';
+        document.getElementById('postId').value = '';
+        document.getElementById('postTitle').value = '';
+        document.getElementById('postContent').value = '';
+        document.getElementById('postPublished').checked = false;
+        document.getElementById('postModal').classList.remove('hidden');
+    }
+
+    function editPost(id) {
+        const post = posts.find(p => p.id === id);
+        if (!post) return;
+
+        document.getElementById('modalTitle').textContent = 'Edit Post';
+        document.getElementById('postId').value = post.id;
+        document.getElementById('postTitle').value = post.title;
+        document.getElementById('postContent').value = post.content;
+        document.getElementById('postPublished').checked = post.is_published;
+        document.getElementById('postModal').classList.remove('hidden');
+    }
+
+    function hideModal() {
+        document.getElementById('postModal').classList.add('hidden');
+        document.getElementById('modalError').classList.add('hidden');
+    }
+
+    async function publishPost(id) {
+        try {
+            const response = await apiRequest(`/api/posts/${id}/publish/`, {
+                method: 'POST'
+            });
+            if (response.ok) {
+                loadPosts();
+            }
+        } catch (error) {
+            console.error('Error publishing post:', error);
+        }
+    }
+
+    async function deletePost(id) {
+        if (!confirm('Are you sure you want to delete this post?')) return;
+
+        try {
+            const response = await apiRequest(`/api/posts/${id}/`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                loadPosts();
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
+    }
+
+    document.getElementById('postForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorDiv = document.getElementById('modalError');
+        errorDiv.classList.add('hidden');
+
+        const id = document.getElementById('postId').value;
+        const title = document.getElementById('postTitle').value;
+        const content = document.getElementById('postContent').value;
+        const is_published = document.getElementById('postPublished').checked;
+
+        try {
+            const url = id ? `/api/posts/${id}/` : '/api/posts/';
+            const method = id ? 'PUT' : 'POST';
+
+            const response = await apiRequest(url, {
+                method: method,
+                body: JSON.stringify({ title, content, is_published })
+            });
+
+            if (response.ok) {
+                hideModal();
+                loadPosts();
+            } else {
+                const data = await response.json();
+                errorDiv.textContent = data.error || data.detail || 'Error saving post';
+                errorDiv.classList.remove('hidden');
+            }
+        } catch (error) {
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.classList.remove('hidden');
+        }
+    });
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    loadPosts();
+</script>
+{% endblock %}
+
