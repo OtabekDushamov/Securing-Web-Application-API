@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}User data - Secure Auth Service{% endblock %}
+
+{% block extra_css %}
+<style>
+  .json-page { background: linear-gradient(180deg, #0f1116 0%, #1a1d29 100%); min-height: 80vh; }
+  .json-block { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+  pre { color: #e4e6eb; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.6; margin: 0; overflow-x: auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="json-page rounded-2xl p-6 sm:p-8">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-xl font-semibold text-white mb-2">User data</h1>
+    <p class="text-sm text-gray-400 mb-6">You are logged in. Below is your user data in JSON (no source/redirect was provided).</p>
+    <div class="json-block p-6 overflow-x-auto">
+      <pre id="user-json">{{ user_data }}</pre>
+    </div>
+    <p class="mt-4 text-xs text-gray-500">Use <code class="text-gray-400 bg-white/5 px-1 rounded">?next=...</code> or <code class="text-gray-400 bg-white/5 px-1 rounded">?source=...</code> on login/register to be redirected back with this data in the URL fragment.</p>
+  </div>
+</div>
+{% endblock %}

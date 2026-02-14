@@ -11,16 +11,18 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Our login/register/complete take precedence; allauth handles /accounts/google/login/ etc.
+    path('accounts/', include('apps.accounts.urls')),
+    path('accounts/', include('allauth.urls')),
     
-    # Root redirect to dashboard (or login if not authenticated)
-    path('', lambda request: redirect('dashboard') if request.user.is_authenticated else redirect('login'), name='home'),
+    # Root redirect: if authenticated go to complete (handles next/source) or dashboard; else login
+    path('', lambda request: redirect('accounts:complete') if request.user.is_authenticated else redirect('accounts:login'), name='home'),
     
     # JWT Token endpoints
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     
-    # Frontend pages
-    path('accounts/', include('apps.accounts.urls')),
+    # Frontend pages (dashboard, posts)
     path('', include('apps.api.urls')),
     
     # API endpoints  
