@@ -51,7 +51,8 @@ def login_page(request):
         if next_url:
             return redirect(reverse('accounts:complete') + '?' + urlencode({'next': next_url}))
         return redirect('accounts:complete')
-    next_val = (request.GET.get('next') or request.GET.get('source') or '').strip()
+    # GET: from query string. POST: from form body (hidden field) so redirect goes back to originating site
+    next_val = (request.GET.get('next') or request.GET.get('source') or request.POST.get('next') or '').strip()
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
@@ -79,7 +80,8 @@ def register_page(request):
         if next_url:
             return redirect(reverse('accounts:complete') + '?' + urlencode({'next': next_url}))
         return redirect('accounts:complete')
-    next_val = request.GET.get('next') or request.GET.get('source') or ''
+    # GET: from query string. POST: from form body (hidden field) so redirect goes back to originating site
+    next_val = (request.GET.get('next') or request.GET.get('source') or request.POST.get('next') or '').strip()
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
