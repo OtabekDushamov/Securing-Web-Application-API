@@ -101,7 +101,7 @@ def register_page(request):
         except Exception as e:
             messages.error(request, str(e) or 'Registration failed.')
             return redirect('accounts:register')
-        login(request, user)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect(reverse('accounts:complete') + ('?' + urlencode({'next': next_val}) if next_val else ''))
     return render(request, 'accounts/register.html', {'next_url': next_val})
 
