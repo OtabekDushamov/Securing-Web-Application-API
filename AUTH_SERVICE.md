@@ -1,8 +1,14 @@
 # Auth service (login / register for external services)
 
-This app can act as a central login/register service. External apps redirect users here; after successful auth you get user data (e.g. in JSON or in the redirect URL).
+This app can act as a central login/register service. External apps **redirect users** to the login/register pages and receive user data in the **redirect URL** as a GET parameter (encoded).
 
-## Flow
+**Connecting from another HTML site?** See [docs/EXTERNAL_HTML_CLIENT.md](docs/EXTERNAL_HTML_CLIENT.md) for step-by-step integration and copy-paste examples.
+
+---
+
+## Using auth from an external source (browser redirect)
+
+### Flow
 
 1. **With redirect (external service)**  
    Send users to:
@@ -11,9 +17,9 @@ This app can act as a central login/register service. External apps redirect use
    You can use `next` or `source` (same meaning).
 
 2. **After success**  
-   The user is redirected to your URL with user data in the **hash fragment**:
+   The user is redirected to your URL with user data in a **GET parameter** (`data=base64url-encoded-json`):
    ```
-   https://your-app.com/callback#data=<base64url-encoded-json>
+   https://your-app.com/callback?data=<base64url-encoded-json>
    ```
    Decode the `data` value (base64url) to get JSON like:
    ```json
@@ -27,12 +33,23 @@ This app can act as a central login/register service. External apps redirect use
      "created_at": "2025-02-14T12:00:00Z"
    }
    ```
-   Your frontend can read `window.location.hash` and parse `data` to get the user.
+   Your frontend reads `window.location.search`, gets the `data` parameter, decodes it (base64url → JSON), and uses the user object.
 
 3. **Without redirect**  
    If the user opens login/register with no `next`/`source`, after success they see a **user data page** that displays the same JSON (no redirect).
 
-## Pages
+---
+
+## API (login/register)
+
+- **Register:** `POST /api/accounts/register/` — returns user + JWT tokens in the response body.
+- **Login:** `POST /api/accounts/login/` — returns user + JWT tokens in the response body.
+
+There is no server-to-server POST to an external URL; user data is only returned in the redirect GET param (web flow) or in the API response (API flow).
+
+---
+
+## Pages (web flow)
 
 - **Login:** `/accounts/login/`  
   Form (username/password) + “Continue with Google”.

@@ -3,7 +3,7 @@ Views for user authentication and management.
 """
 import json
 import base64
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
 
 from rest_framework import status, generics, permissions
 from rest_framework.decorators import api_view, permission_classes
@@ -29,16 +29,16 @@ def _user_data_json(user):
 
 
 def _redirect_to_source_with_user_data(redirect_url, user):
-    """Redirect to external URL with user data in fragment (#data=base64url)."""
+    """Redirect to external URL with user data in GET param (data=base64url)."""
     data = _user_data_json(user)
     payload = json.dumps(data, default=str)
     encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip('=')
-    fragment = f'data={encoded}'
-    if '#' in redirect_url:
-        base_url, existing = redirect_url.split('#', 1)
-        fragment = f'{existing}&{fragment}' if existing else fragment
-        return redirect(f'{base_url}#{fragment}')
-    return redirect(f'{redirect_url}#{fragment}')
+    parsed = urlparse(redirect_url)
+    query = parse_qs(parsed.query, keep_blank_values=True)
+    query['data'] = [encoded]
+    new_query = urlencode(query, doseq=True)
+    new_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+    return redirect(new_url)
 
 
 # Frontend Views
@@ -107,7 +107,7 @@ def register_page(request):
 @login_required(login_url='/accounts/login/')
 def complete(request):
     """
-    After login/register: if next/source provided, redirect there with user data in fragment.
+    After login/register: if next/source provided, redirect there with user data in GET param (?data=base64url).
     Otherwise show the user-data page (JSON).
     """
     next_url = request.GET.get('next') or request.GET.get('source', '').strip()
@@ -141,14 +141,16 @@ class RegisterView(generics.CreateAPIView):
         
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
+        user_data = UserSerializer(user).data
+        tokens = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
         
         return Response({
             'message': 'User registered successfully',
-            'user': UserSerializer(user).data,
-            'tokens': {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
+            'user': user_data,
+            'tokens': tokens,
         }, status=status.HTTP_201_CREATED)
 
 
@@ -170,14 +172,16 @@ def login_view(request):
     
     # Generate JWT tokens
     refresh = RefreshToken.for_user(user)
+    user_data = UserSerializer(user).data
+    tokens = {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
     
     return Response({
         'message': 'Login successful',
-        'user': UserSerializer(user).data,
-        'tokens': {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
+        'user': user_data,
+        'tokens': tokens,
     }, status=status.HTTP_200_OK)
 
 
