@@ -9,7 +9,7 @@ from rest_framework import status, generics, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import get_user_model, authenticate, login
+from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.utils import timezone
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -118,6 +118,15 @@ def complete(request):
     return render(request, 'accounts/user_data.html', {
         'user_data': json.dumps(_user_data_json(request.user), indent=2, default=str),
     })
+
+
+def logout_page(request):
+    """Session logout; redirect to next/source or login."""
+    logout(request)
+    next_url = (request.GET.get('next') or request.GET.get('source') or '').strip()
+    if next_url:
+        return redirect(next_url)
+    return redirect('accounts:login')
 
 
 @login_required

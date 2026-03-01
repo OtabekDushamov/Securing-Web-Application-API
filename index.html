@@ -88,7 +88,7 @@
           '<p>You are signed in.</p>' +
           '<p class="user">' + (user.username || user.email || 'User') + '</p>' +
           '<p class="meta">id: ' + user.id + (user.email ? ' · ' + user.email : '') + '</p>' +
-          '<p id="message"><a href="#" onclick="clearAuthParam(); return false;">Clear and show login again</a></p>';
+          '<p id="message"><a href="' + AUTH_BASE + '/accounts/logout/?next=' + nextParam + '">Clear and show login again</a></p>';
       } else {
         app.innerHTML =
           '<p>Sign in or create an account.</p>' +
@@ -107,7 +107,6 @@
     }
 
     render();
-    window.addEventListener('popstate', render);
   </script>
 </body>
 </html>
