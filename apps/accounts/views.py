@@ -24,8 +24,16 @@ User = get_user_model()
 
 
 def _user_data_json(user):
-    """Return dict of user data for JSON response (no sensitive fields)."""
-    return UserSerializer(user).data
+    """Return dict of user data for JSON response (no sensitive fields). Includes picture from Google if linked."""
+    data = dict(UserSerializer(user).data)
+    try:
+        from allauth.socialaccount.models import SocialAccount
+        acc = SocialAccount.objects.filter(user=user, provider='google').first()
+        if acc and isinstance(acc.extra_data, dict) and acc.extra_data.get('picture'):
+            data['picture'] = acc.extra_data['picture']
+    except Exception:
+        pass
+    return data
 
 
 def _redirect_to_source_with_user_data(redirect_url, user):
@@ -68,7 +76,7 @@ def login_page(request):
         user.last_login_ip = request.META.get('REMOTE_ADDR')
         user.save()
         return redirect(reverse('accounts:complete') + ('?' + urlencode({'next': next_val}) if next_val else ''))
-    return render(request, 'accounts/login.html', {'next_url': next_val})
+    return render(request, 'accounts/login.html', {'next_url': next_val, 'next_for_google': request.build_absolute_uri(reverse('accounts:complete') + ('?' + urlencode({'next': next_val}) if next_val else ''))})
 
 
 @require_http_methods(['GET', 'POST'])
@@ -103,7 +111,8 @@ def register_page(request):
             return redirect('accounts:register')
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect(reverse('accounts:complete') + ('?' + urlencode({'next': next_val}) if next_val else ''))
-    return render(request, 'accounts/register.html', {'next_url': next_val})
+    next_for_google = request.build_absolute_uri(reverse('accounts:complete') + ('?' + urlencode({'next': next_val}) if next_val else ''))
+    return render(request, 'accounts/register.html', {'next_url': next_val, 'next_for_google': next_for_google})
 
 
 @login_required(login_url='/accounts/login/')

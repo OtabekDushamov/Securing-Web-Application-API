@@ -30,10 +30,11 @@ This app can act as a central login/register service. External apps **redirect u
      "first_name": "",
      "last_name": "",
      "is_verified": false,
-     "created_at": "2025-02-14T12:00:00Z"
+     "created_at": "2025-02-14T12:00:00Z",
+     "picture": "https://lh3.googleusercontent.com/..."
    }
    ```
-   Your frontend reads `window.location.search`, gets the `data` parameter, decodes it (base64url → JSON), and uses the user object.
+   When the user signed in with **Google**, the payload also includes `picture` (profile image URL). Your frontend can show it as an avatar.
 
 3. **Without redirect**  
    If the user opens login/register with no `next`/`source`, after success they see a **user data page** that displays the same JSON (no redirect).
@@ -63,7 +64,7 @@ There is no server-to-server POST to an external URL; user data is only returned
 1. Install deps: `pip install -r requirements.txt` (includes `django-allauth`).
 2. Create OAuth credentials: [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → Create OAuth 2.0 Client ID (Web application). Set authorized redirect URI to:
    - `http://127.0.0.1:8000/accounts/google/login/callback/` (dev)
-   - or your production origin, e.g. `https://yourdomain.com/accounts/google/login/callback/`
+   - or your production origin, e.g. `https://auth.otabekdushamov.uz/accounts/google/login/callback/`
 3. In `.env`:
    ```env
    GOOGLE_OAUTH_CLIENT_ID=your-client-id
