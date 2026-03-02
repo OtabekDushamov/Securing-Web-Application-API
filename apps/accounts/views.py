@@ -50,6 +50,24 @@ def _redirect_to_source_with_user_data(redirect_url, user):
 
 
 # Frontend Views
+@require_http_methods(['GET'])
+def signup_redirect(request):
+    """Redirect /accounts/signup/ to our register page, EXCEPT when user is in a social (Google) flow — then send them to Google login."""
+    next_val = (request.GET.get('next') or request.GET.get('source') or '').strip()
+    # If they have a next URL that looks like our complete page or callback, they're in the Google flow — send them to Google login, not register
+    complete_path = reverse('accounts:complete')
+    if next_val and (complete_path in next_val or 'complete' in next_val):
+        google_login = request.build_absolute_uri('/accounts/google/login/')
+        if next_val:
+            google_login += '?' + urlencode({'next': next_val})
+        return redirect(google_login)
+    # Direct visit to signup: send to our register page
+    url = reverse('accounts:register')
+    if next_val:
+        url += '?' + urlencode({'next': next_val})
+    return redirect(url)
+
+
 @require_http_methods(['GET', 'POST'])
 @csrf_protect
 def login_page(request):

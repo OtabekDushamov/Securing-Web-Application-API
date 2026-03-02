@@ -79,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.accounts.middleware.SocialLoginNextMiddleware',
     'apps.security.middleware.SecurityHeadersMiddleware',  # Custom security middleware
     'allauth.account.middleware.AccountMiddleware'
 ]
@@ -180,6 +181,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 LOGIN_REDIRECT_URL = '/accounts/complete/'
 LOGIN_URL = '/accounts/login/'
 
+SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomSocialAccountAdapter'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
