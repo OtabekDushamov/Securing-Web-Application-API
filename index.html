@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check Auth</title>
     <style>
+        :root {
+            --bg-1: #f4efe7;
+            --bg-2: #d8e8e1;
+            --bg-3: #dbe4f6;
+            --surface: rgba(255, 255, 255, 0.44);
+            --surface-strong: rgba(255, 255, 255, 0.68);
+            --border: rgba(255, 255, 255, 0.56);
+            --text: #172033;
+            --muted: #617088;
+            --accent: #1f6feb;
+            --accent-deep: #164ca8;
+            --success: #0f8a61;
+            --shadow: 0 24px 60px rgba(44, 62, 98, 0.16);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,111 +27,245 @@
         }
 
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background-color: #fafafa;
-            color: #1a1a1a;
+            font-family: "SF Pro Display", "Segoe UI", sans-serif;
+            color: var(--text);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            padding: 24px 16px;
+            justify-content: center;
+            padding: 28px 16px;
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.86), transparent 26%),
+                radial-gradient(circle at 84% 16%, rgba(181, 215, 255, 0.46), transparent 26%),
+                radial-gradient(circle at 76% 82%, rgba(175, 224, 202, 0.58), transparent 24%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2) 50%, var(--bg-3));
         }
 
-        .container {
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            border-radius: 999px;
+            pointer-events: none;
+            filter: blur(14px);
+            opacity: .82;
+            animation: drift 15s ease-in-out infinite;
+        }
+
+        body::before {
+            width: 280px;
+            height: 280px;
+            left: -100px;
+            top: 10%;
+            background: rgba(255, 255, 255, 0.42);
+        }
+
+        body::after {
+            width: 250px;
+            height: 250px;
+            right: -70px;
+            bottom: 6%;
+            background: rgba(111, 170, 255, 0.18);
+            animation-delay: -6s;
+        }
+
+        .shell {
             width: 100%;
-            max-width: 420px;
+            max-width: 1020px;
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        .panel,
+        .card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            backdrop-filter: blur(26px) saturate(180%);
+            -webkit-backdrop-filter: blur(26px) saturate(180%);
+            box-shadow: var(--shadow);
+            animation: rise .72s ease-out both;
+        }
+
+        .panel::after,
+        .card::after {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            pointer-events: none;
+        }
+
+        .panel {
+            border-radius: 30px;
+            padding: 36px;
+            min-height: 640px;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .eyebrow {
+            display: inline-flex;
             align-items: center;
+            gap: 8px;
+            width: fit-content;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.34);
+            color: var(--muted);
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
+        .hero h1 {
+            margin: 18px 0 14px;
+            max-width: 520px;
+            font-size: clamp(2.6rem, 5vw, 4.6rem);
+            line-height: .95;
+            letter-spacing: -.05em;
         }
 
-        .title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
+        .hero p {
+            max-width: 470px;
+            color: var(--muted);
+            line-height: 1.75;
         }
 
-        .subtitle {
-            font-size: 0.875rem;
-            color: #666;
+        .highlights {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .highlight {
+            padding: 16px 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.24);
+            border: 1px solid rgba(255, 255, 255, 0.34);
+        }
+
+        .highlight strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+
+        .highlight span {
+            color: var(--muted);
+            font-size: .92rem;
+            line-height: 1.55;
+        }
+
+        .footnote {
+            color: var(--accent-deep);
+            font-size: .92rem;
+            font-weight: 600;
+            line-height: 1.6;
         }
 
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-            padding: 32px 24px;
+            border-radius: 28px;
+            padding: 28px;
+            display: flex;
+            align-items: center;
+            animation-delay: .08s;
+        }
+
+        #app {
             width: 100%;
         }
 
         .app-content {
             display: flex;
             flex-direction: column;
+            gap: 18px;
+        }
+
+        .status-badge {
+            display: inline-flex;
             align-items: center;
-            text-align: center;
+            gap: 8px;
+            width: fit-content;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.34);
+            color: var(--muted);
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
         }
 
         .status-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
+            width: 72px;
+            height: 72px;
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
-            font-size: 28px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+            font-size: 30px;
         }
 
         .status-icon.success {
-            background-color: #d1fae5;
-            color: #059669;
-        }
-
-        .status-icon.profile-img {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 20px;
+            color: var(--success);
         }
 
         .status-icon.auth {
-            background-color: #dbeafe;
-            color: #2563eb;
+            color: var(--accent);
+        }
+
+        .status-icon.profile-img {
+            border-radius: 24px;
+            object-fit: cover;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.58);
         }
 
         .status-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 16px;
+            font-size: 2rem;
+            letter-spacing: -.04em;
+            line-height: 1.05;
+        }
+
+        .status-text {
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: .97rem;
         }
 
         .user-info {
-            margin-bottom: 20px;
+            padding: 18px 20px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.34);
+            border: 1px solid rgba(255, 255, 255, 0.44);
         }
 
         .user-name {
             font-size: 1.25rem;
-            font-weight: 600;
-            color: #059669;
+            font-weight: 700;
             margin-bottom: 4px;
         }
 
         .user-email {
-            font-size: 0.875rem;
-            color: #059669;
-            margin-bottom: 12px;
+            color: var(--success);
+            font-size: .92rem;
+            margin-bottom: 8px;
         }
 
         .user-meta {
-            font-size: 0.75rem;
-            color: #666;
-            line-height: 1.5;
+            color: var(--muted);
+            font-size: .84rem;
+            line-height: 1.6;
         }
 
         .button-group {
@@ -130,128 +279,166 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 14px 24px;
-            border-radius: 8px;
-            font-size: 0.9375rem;
-            font-weight: 500;
+            gap: 10px;
+            width: 100%;
+            padding: 15px 18px;
+            border-radius: 18px;
+            font-size: .96rem;
+            font-weight: 600;
             text-decoration: none;
-            transition: all 0.2s ease;
+            transition: transform .22s ease, box-shadow .22s ease, background-color .22s ease;
             cursor: pointer;
             border: none;
         }
 
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
         .btn-primary {
-            background-color: #2563eb;
+            background: linear-gradient(135deg, var(--accent), #5d96ff);
             color: white;
+            box-shadow: 0 16px 30px rgba(31, 111, 235, 0.28);
         }
 
         .btn-primary:hover {
-            background-color: #1d4ed8;
+            background: linear-gradient(135deg, var(--accent-deep), #4c7fdf);
         }
 
         .btn-secondary {
-            background-color: #f3f4f6;
-            color: #374151;
+            background: rgba(255, 255, 255, 0.62);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.72);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
         }
 
         .btn-secondary:hover {
-            background-color: #e5e7eb;
+            box-shadow: 0 14px 28px rgba(30, 41, 59, 0.08);
         }
 
         .link-text {
-            font-size: 0.875rem;
-            color: #666;
-            margin-top: 20px;
+            color: var(--muted);
+            font-size: .92rem;
+            line-height: 1.6;
         }
 
         .link-text a {
-            color: #2563eb;
+            color: var(--accent-deep);
             text-decoration: none;
+            font-weight: 600;
         }
 
         .link-text a:hover {
             text-decoration: underline;
         }
 
-        .footer {
-            margin-top: 32px;
-            text-align: center;
-        }
-
-        .footer-text {
-            font-size: 0.75rem;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .footer-text a {
-            color: #666;
-            text-decoration: none;
-        }
-
-        .footer-text a:hover {
-            color: #2563eb;
-            text-decoration: underline;
-        }
-
-        .hidden {
-            display: none;
-        }
-
         .redirect-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(250, 250, 250, 0.95);
+            inset: 0;
+            background: rgba(244, 239, 231, 0.42);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            padding: 16px;
+        }
+
+        .redirect-card {
+            width: min(100%, 360px);
+            padding: 28px 24px;
+            border-radius: 26px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.58);
+            box-shadow: var(--shadow);
         }
 
         .redirect-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #e5e7eb;
-            border-top-color: #2563eb;
+            width: 46px;
+            height: 46px;
+            margin: 0 auto;
+            border: 3px solid rgba(255, 255, 255, 0.58);
+            border-top-color: var(--accent);
             border-radius: 50%;
             animation: redirect-spin 0.8s linear infinite;
+        }
+
+        .redirect-text {
+            margin-top: 16px;
+            font-size: .96rem;
+            color: #314057;
+            line-height: 1.6;
         }
 
         @keyframes redirect-spin {
             to { transform: rotate(360deg); }
         }
 
-        .redirect-text {
-            margin-top: 16px;
-            font-size: 0.9375rem;
-            color: #374151;
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(16px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(0, 14px, 0); }
+        }
+
+        @media (max-width: 920px) {
+            .shell {
+                grid-template-columns: 1fr;
+                max-width: 620px;
+            }
+
+            .panel {
+                min-height: auto;
+                padding: 28px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .panel,
+            .card {
+                border-radius: 24px;
+                padding: 22px;
+            }
+
+            .highlights {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="title">Check Auth</h1>
-            <p class="subtitle">Sign in or register via auth.otabekdushamov.uz</p>
-        </div>
-
-        <div class="card">
-            <div id="app">
-                <!-- Content injected by JavaScript -->
+    <div class="shell">
+        <section class="panel">
+            <div class="hero">
+                <span class="eyebrow">Check Auth</span>
+                <h1>One clean place to start login or registration.</h1>
+                <p>This landing page connects the external client to your authentication service and returns user data after a successful sign-in.</p>
+                <div class="highlights">
+                    <div class="highlight">
+                        <strong>Auth handoff</strong>
+                        <span>Redirects users to `auth.otabekdushamov.uz` and returns them here after the flow is complete.</span>
+                    </div>
+                    <div class="highlight">
+                        <strong>Minimal client</strong>
+                        <span>Simple experience for login, registration, and signed-in confirmation without extra complexity.</span>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="footer">
-            <p class="footer-text">
-                Deployed at <a href="https://checkauth.otabekdushamov.uz">checkauth.otabekdushamov.uz</a>
-                <br>
-                Auth: <a href="https://auth.otabekdushamov.uz">auth.otabekdushamov.uz</a>
-            </p>
-        </div>
+            <div class="footnote">
+                Deployed at <a href="https://checkauth.otabekdushamov.uz" style="color: inherit;">checkauth.otabekdushamov.uz</a><br>
+                Auth service: <a href="https://auth.otabekdushamov.uz" style="color: inherit;">auth.otabekdushamov.uz</a>
+            </div>
+        </section>
+
+        <section class="card">
+            <div id="app"></div>
+        </section>
     </div>
 
     <script>
@@ -296,12 +483,14 @@
             const name = user.username || user.email || 'User';
             const meta = [user.id && ('ID: ' + user.id), user.email].filter(Boolean).join(' · ');
             const avatarHtml = user.picture
-                ? `<img src="${escapeHtml(user.picture)}" alt="" class="status-icon profile-img" width="64" height="64">`
+                ? `<img src="${escapeHtml(user.picture)}" alt="" class="status-icon profile-img" width="72" height="72">`
                 : '<div class="status-icon success">✓</div>';
             return `
                 <div class="app-content">
+                    <span class="status-badge">Authenticated</span>
                     ${avatarHtml}
-                    <h2 class="status-title">You are signed in</h2>
+                    <h2 class="status-title">You are signed in.</h2>
+                    <p class="status-text">Your account data has been returned to this client successfully.</p>
                     <div class="user-info">
                         <div class="user-name">${escapeHtml(name)}</div>
                         ${user.email ? `<div class="user-email">${escapeHtml(user.email)}</div>` : ''}
@@ -319,8 +508,10 @@
             const registerUrl = AUTH_BASE + '/accounts/register/?next=' + nextParam;
             return `
                 <div class="app-content">
-                    <div class="status-icon auth">🔒</div>
-                    <h2 class="status-title">Sign in or create an account</h2>
+                    <span class="status-badge">Authentication required</span>
+                    <div class="status-icon auth">⌁</div>
+                    <h2 class="status-title">Sign in or create an account.</h2>
+                    <p class="status-text">Choose one of the actions below to continue through the external authentication service.</p>
                     <div class="button-group">
                         <a href="${loginUrl}" class="btn btn-primary auth-link" data-href="${loginUrl}">Log in</a>
                         <a href="${registerUrl}" class="btn btn-secondary auth-link" data-href="${registerUrl}">Register</a>
@@ -332,11 +523,11 @@
         function showRedirectThenGo(url) {
             var overlay = document.createElement('div');
             overlay.className = 'redirect-overlay';
-            overlay.innerHTML = '<div class="redirect-spinner"></div><p class="redirect-text">Redirecting to auth.otabekdushamov.uz</p>';
+            overlay.innerHTML = '<div class="redirect-card"><div class="redirect-spinner"></div><p class="redirect-text">Redirecting to auth.otabekdushamov.uz</p></div>';
             document.body.appendChild(overlay);
             setTimeout(function () {
                 window.location.href = url;
-            }, 2000);
+            }, 900);
         }
 
         function init() {
