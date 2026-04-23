@@ -23,10 +23,20 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         required=True,
         style={'input_type': 'password'}
     )
+    accepted_user_agreement = serializers.BooleanField(required=True, write_only=True)
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'password_confirm', 'first_name', 'last_name')
+        fields = (
+            'id',
+            'username',
+            'email',
+            'password',
+            'password_confirm',
+            'first_name',
+            'last_name',
+            'accepted_user_agreement',
+        )
         extra_kwargs = {
             'email': {'required': True},
             'username': {'required': True},
@@ -40,6 +50,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'password': 'Password fields did not match.'
             })
+        if not attrs.get('accepted_user_agreement'):
+            raise serializers.ValidationError({
+                'accepted_user_agreement': 'You must accept the user agreement.'
+            })
         return attrs
     
     def create(self, validated_data):
@@ -47,9 +61,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         Create a new user with hashed password.
         """
         validated_data.pop('password_confirm')
+        validated_data.pop('accepted_user_agreement')
         password = validated_data.pop('password')
         user = User.objects.create_user(**validated_data)
         user.set_password(password)
+        user.accepted_user_agreement = True
+        user.user_agreement_accepted_at = user.created_at
         user.save()
         return user
 
@@ -93,4 +110,3 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Must include "username" and "password".')
         
         return attrs
-

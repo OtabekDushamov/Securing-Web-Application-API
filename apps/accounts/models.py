@@ -13,6 +13,8 @@ class User(AbstractUser):
     """
     email = models.EmailField(unique=True, blank=False, null=False)
     is_verified = models.BooleanField(default=False)
+    accepted_user_agreement = models.BooleanField(default=False)
+    user_agreement_accepted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)

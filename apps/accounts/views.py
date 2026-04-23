@@ -10,6 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model, authenticate, login, logout
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -113,8 +115,12 @@ def register_page(request):
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
         password_confirm = request.POST.get('password_confirm', '')
+        accepted_user_agreement = request.POST.get('accepted_user_agreement') == 'on'
         if password != password_confirm:
             messages.error(request, "Passwords don't match.")
+            return redirect(reverse('accounts:register') + ('?' + urlencode({'next': next_val}) if next_val else ''))
+        if not accepted_user_agreement:
+            messages.error(request, 'You must accept the user agreement to create an account.')
             return redirect(reverse('accounts:register') + ('?' + urlencode({'next': next_val}) if next_val else ''))
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already taken.')
@@ -123,14 +129,29 @@ def register_page(request):
             messages.error(request, 'Email already registered.')
             return redirect(reverse('accounts:register') + ('?' + urlencode({'next': next_val}) if next_val else ''))
         try:
+            validate_password(password)
+        except ValidationError as exc:
+            for error in exc.messages:
+                messages.error(request, error)
+            return redirect(reverse('accounts:register') + ('?' + urlencode({'next': next_val}) if next_val else ''))
+        try:
             user = User.objects.create_user(username=username, email=email, password=password)
         except Exception as e:
             messages.error(request, str(e) or 'Registration failed.')
             return redirect('accounts:register')
+        user.accepted_user_agreement = True
+        user.user_agreement_accepted_at = timezone.now()
+        user.save(update_fields=['accepted_user_agreement', 'user_agreement_accepted_at'])
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect(reverse('accounts:complete') + ('?' + urlencode({'next': next_val}) if next_val else ''))
     next_for_google = request.build_absolute_uri(reverse('accounts:complete') + ('?' + urlencode({'next': next_val}) if next_val else ''))
     return render(request, 'accounts/register.html', {'next_url': next_val, 'next_for_google': next_for_google})
+
+
+@require_http_methods(['GET'])
+def agreement_page(request):
+    """Render the user agreement page."""
+    return render(request, 'accounts/agreement.html')
 
 
 @login_required(login_url='/accounts/login/')
