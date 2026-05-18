@@ -3,34 +3,12 @@ Custom django-allauth adapter so that after Google (or any social) login we redi
 to /accounts/complete/?next=... (or the stored next URL) instead of the 3rdparty signup page,
 and so the user is sent straight back to checkauth.
 """
-from django.conf import settings
-from django.urls import reverse
-from django.utils.http import url_has_allowed_host_and_scheme
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
-    def get_login_redirect_url(self, request, url=None, redirect_field_name="next", signup=False):
-        # Prefer explicit next from request (GET or POST)
-        redirect_to = request.GET.get(redirect_field_name) or request.POST.get(redirect_field_name)
-        if not redirect_to and hasattr(request, "session"):
-            # Allauth may not pass next through OAuth; we store it in middleware when starting Google login
-            redirect_to = request.session.get(redirect_field_name) or request.session.pop("social_next", None)
-        if redirect_to and self.is_safe_redirect_url(request, redirect_to):
-            return redirect_to
-        # Default: our complete page
-        return reverse("accounts:complete")
-
-    def is_safe_redirect_url(self, request, url):
-        if not url:
-            return False
-        allowed_hosts = set(getattr(settings, "ALLOWED_HOSTS", []))
-        if request.get_host():
-            allowed_hosts.add(request.get_host())
-        return url_has_allowed_host_and_scheme(url, allowed_hosts=allowed_hosts)
-
-    def is_auto_signup(self, request, sociallogin):
-        # Always auto-signup so we don't show the 3rdparty signup form
+    def is_auto_signup_allowed(self, request, sociallogin):
+        # Keep Google users out of the allauth 3rd-party signup form.
         return True
 
     def populate_user(self, request, sociallogin, data):

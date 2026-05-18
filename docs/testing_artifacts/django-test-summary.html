@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Django Test Summary</title>
+<style>
+  body { margin: 0; background: #111827; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+  .frame { padding: 32px; }
+  .terminal { background: #0b1020; border: 1px solid #243047; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .bar { height: 42px; background: #172033; border-bottom: 1px solid #243047; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: #cbd5e1; font-size: 13px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .red { background: #ef4444; } .yellow { background: #f59e0b; } .green { background: #22c55e; }
+  .title { margin-left: 10px; }
+  pre { margin: 0; padding: 24px; color: #dbeafe; font-size: 20px; line-height: 1.5; white-space: pre-wrap; }
+</style>
+</head>
+<body><div class="frame"><div class="terminal"><div class="bar"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="title">Django test summary</span></div><pre>$ ./venv/bin/python manage.py test -v 2
+
+Found 4 test(s).
+
+apps.accounts.tests.RegistrationSecurityTests
+  ok  test_api_registration_rejects_weak_password
+  ok  test_api_registration_requires_agreement
+  ok  test_web_registration_rejects_missing_agreement
+  ok  test_web_registration_stores_agreement_acceptance
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.500s
+
+OK
+System check identified no issues (0 silenced).
+</pre></div></div></body>
+</html>

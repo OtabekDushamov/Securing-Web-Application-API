@@ -1,0 +1,15 @@
+$ ./venv/bin/python manage.py test -v 2
+
+Found 4 test(s).
+
+apps.accounts.tests.RegistrationSecurityTests
+  ok  test_api_registration_rejects_weak_password
+  ok  test_api_registration_requires_agreement
+  ok  test_web_registration_rejects_missing_agreement
+  ok  test_web_registration_stores_agreement_acceptance
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.500s
+
+OK
+System check identified no issues (0 silenced).
